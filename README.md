@@ -112,3 +112,5 @@ Highlight any text on a webpage and click Simplify to get an AI summary.
 - Shamanth S Joshi - UI/UX & Accessibility Research
 - Sudhanva H Rao - Documentation & Testing
 
+This project is licensed under the MIT License
+Copyright © 2025 DevNull
