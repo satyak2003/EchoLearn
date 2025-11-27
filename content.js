@@ -12,14 +12,21 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "FIX_IMAGES") fixImages();
 });
 
+// --- HELPER: SPEECH ---
+function speakText(text) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1.0; 
+    utterance.pitch = 1.0;
+    window.speechSynthesis.speak(utterance);
+}
+
 // --- FEATURES ---
+
 function readSelection() {
     const text = window.getSelection().toString();
     if (text) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.rate = 0.9;
-        window.speechSynthesis.speak(utterance);
+        speakText(text);
     } else {
         alert("Please highlight text first.");
     }
@@ -28,7 +35,7 @@ function readSelection() {
 function toggleContrast() {
     contrastActive = !contrastActive;
     if (contrastActive) {
-        document.body.classList.add('access-high-contrast'); // For overlay inheritance
+        document.body.classList.add('access-high-contrast');
         const style = document.createElement('style');
         style.id = 'access-contrast';
         style.innerHTML = `
@@ -41,9 +48,11 @@ function toggleContrast() {
             img, video { filter: grayscale(100%) contrast(120%) !important; }
         `;
         document.head.appendChild(style);
+        speakText("High contrast mode enabled.");
     } else {
         document.body.classList.remove('access-high-contrast');
         document.getElementById('access-contrast')?.remove();
+        speakText("High contrast mode disabled.");
     }
 }
 
@@ -61,16 +70,22 @@ function toggleDyslexia() {
             }
         `;
         document.head.appendChild(style);
+        speakText("Dyslexia font enabled.");
     } else {
         document.getElementById('access-dyslexia')?.remove();
+        speakText("Dyslexia font disabled.");
     }
 }
 
 async function simplifyText() {
     const text = window.getSelection().toString();
-    if (!text) { alert("Select text first."); return; }
+    if (!text) { 
+        speakText("Please select some text to simplify.");
+        return; 
+    }
 
     showOverlay("Thinking...", true);
+    speakText("Simplifying text. Please wait.");
 
     try {
         const response = await fetch('http://127.0.0.1:5000/simplify', {
@@ -80,12 +95,18 @@ async function simplifyText() {
         });
         const data = await response.json();
         
-        // Format the response nicely
+        // 1. Show Visuals
         const formattedHTML = formatAIResponse(data.simplified);
         showOverlay(formattedHTML, false);
         
+        // 2. Read Aloud (Clean text first)
+        // We remove markdown symbols like ** or # for smoother speech
+        const speechSafeText = data.simplified.replace(/\*\*/g, "").replace(/#/g, "");
+        speakText("Here is the summary: " + speechSafeText);
+        
     } catch (err) {
         showOverlay("Error: Is Python backend running?", false);
+        speakText("I could not connect to the A I server.");
     }
 }
 
@@ -99,68 +120,27 @@ function fixImages() {
             count++;
         }
     });
-    alert(`Fixed ${count} images.`);
+    speakText(`I found and highlighted ${count} images missing descriptions.`);
 }
 
-// --- HELPER: FORMAT AI MARKDOWN TO HTML ---
+// --- FORMATTING HELPERS ---
 function formatAIResponse(text) {
-    if (!text) return "No response.";
-    
-    // 1. Convert **Bold** to <strong>Bold</strong>
-    let html = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-    
-    // 2. Convert * Bullet points to <li>
-    // Split by newlines
-    let lines = html.split('\n');
-    let output = "";
-    let inList = false;
-
-    lines.forEach(line => {
-        line = line.trim();
-        if (line.startsWith('* ') || line.startsWith('- ')) {
-            if (!inList) { output += "<ul>"; inList = true; }
-            output += `<li>${line.substring(2)}</li>`;
-        } else {
-            if (inList) { output += "</ul>"; inList = false; }
-            if (line.length > 0) output += `<p>${line}</p>`;
-        }
-    });
-
-    if (inList) output += "</ul>";
-    
-    return html; // Return plain html string with bold tags, logic above was for lists but simple bold replace is safer for basic display
-}
-
-// Rewriting formatAIResponse to be more robust
-function formatAIResponse(text) {
-    // Escape HTML to prevent injection (basic)
     let safeText = text.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-
-    // Bold: **text** -> <strong>text</strong>
     safeText = safeText.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-    // Headers: # Header -> <h2>Header</h2>
     safeText = safeText.replace(/^#\s+(.*)$/gm, "<h2>$1</h2>");
     safeText = safeText.replace(/^##\s+(.*)$/gm, "<h3>$1</h3>");
-
-    // Bullets: * text or - text -> <li>text</li>
-    // We wrap them in <ul> later or just let them be styled blocks
     safeText = safeText.replace(/^\*\s+(.*)$/gm, "<li>$1</li>");
     safeText = safeText.replace(/^-\s+(.*)$/gm, "<li>$1</li>");
-
-    // Newlines to <br> if not a list item
     safeText = safeText.replace(/\n/g, "<br>");
-    
     return safeText;
 }
 
-
-// --- UI: FULL SCREEN OVERLAY ---
+// --- UI OVERLAY ---
 function showOverlay(content, isLoading = false) {
     if (overlay) overlay.remove();
     
     overlay = document.createElement('div');
-    overlay.className = "openaccess-overlay"; // Uses styles.css
+    overlay.className = "openaccess-overlay"; 
     
     let innerHTML = "";
     
@@ -186,5 +166,10 @@ function showOverlay(content, isLoading = false) {
     document.body.appendChild(overlay);
     
     const closeBtn = document.getElementById('oaCloseBtn');
-    if (closeBtn) closeBtn.onclick = () => overlay.remove();
+    if (closeBtn) {
+        closeBtn.onclick = () => {
+            overlay.remove();
+            window.speechSynthesis.cancel(); // Stop speaking when closed
+        };
+    }
 }

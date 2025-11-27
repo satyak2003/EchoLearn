@@ -138,7 +138,7 @@ function processCommand(command) {
         speak("Dyslexia mode on");
         sendMessage("TOGGLE_DYSLEXIA");
     }
-    else if (command.includes("read") || command.includes("speak")) {
+    else if (command.includes("read") || command.includes("speak")||command.includes("stop reading")) {
         speak("Reading");
         sendMessage("READ_SELECTION");
     }

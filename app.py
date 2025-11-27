@@ -7,9 +7,11 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 CORS(app)
 
-api_key = os.getenv("GEMINI_API_KEY")
+load_dotenv()
 
-genai.configure(api_key = "AIzaSyAA0ih69YWNLUR_rh0WvDm2385jSXp4M2Q")
+API_KEY  = os.getenv("GEMINI_API_KEY")
+
+genai.configure(api_key = API_KEY)
 
 model = genai.GenerativeModel('gemini-2.5-flash')
 
