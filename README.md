@@ -1,4 +1,7 @@
 # EchoVision: AI Accessibility Assistant
+
+<img width="2816" height="1536" alt="icon png" src="https://github.com/user-attachments/assets/73e0a270-b159-4538-a967-d356075c130e" />
+
 Breaking digital barriers with Voice Navigation & Generative AI.
 EchoVision is a light weight browser extension that is designed to aid people who are visually challenged, hearing impaired, limited motor function.
 
@@ -102,7 +105,7 @@ Highlight any text on a webpage and click Simplify to get an AI summary.
 
 ## 👥 The Team
 
-- **_Built by DEVNULL_**
+**_Built by DEVNULL_**
 
 - Sandeep Kumar Jena  - Frontend & Voice Logic
 - Satya Karthik R - Backend & AI Integration
