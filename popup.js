@@ -158,8 +158,7 @@ function processCommand(command) {
             
             chrome.scripting.executeScript({
                 target: {tabId: tabs[0].id},
-                func: () => window.scrollBy(0, 750)
-                speak("Scrolled down on current page")
+                func: () => window.scrollBy(0, 500)
             }).catch(() => speak("Cannot scroll this page."));
         });
     }
@@ -169,8 +168,7 @@ function processCommand(command) {
             
             chrome.scripting.executeScript({
                 target: {tabId: tabs[0].id},
-                func: () => window.scrollBy(0, -750)
-                speak("Scrolled up on current page")
+                func: () => window.scrollBy(0, -500)
             }).catch(() => speak("Cannot scroll this page."));
         });
     }
