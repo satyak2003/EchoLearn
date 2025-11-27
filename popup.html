@@ -1,89 +1,49 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <title>EchoVision</title>
-    <style>
-      body {
-        margin: 0;
-        padding: 12px;
-        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-          sans-serif;
-        background: #050816;
-        color: #f9fafb;
-        min-width: 260px;
-      }
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EchoLearn</title>
+  <style>
+    body { width: 300px; padding: 15px; font-family: 'Segoe UI', sans-serif; background: #f8f9fa; }
+    h1 { font-size: 18px; color: #2c3e50; margin-bottom: 15px; border-bottom: 2px solid #3498db; padding-bottom: 5px; }
+    .btn { display: block; width: 100%; padding: 10px; margin-bottom: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; text-align: left; display: flex; align-items: center; gap: 10px; }
+    .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    
+    .btn-contrast { background-color: #000; color: #fff; }
+    .btn-dyslexia { background-color: #f1c40f; color: #000; font-family: 'Comic Sans MS', sans-serif; }
+    .btn-read { background-color: #3498db; color: white; }
+    .btn-simplify { background-color: #27ae60; color: white; }
+    .btn-images { background-color: #e67e22; color: white; }
 
-      h1 {
-        font-size: 16px;
-        margin: 0 0 8px;
-      }
+    .status { font-size: 12px; color: #7f8c8d; margin-top: 10px; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1>OpenAccess ♿</h1>
+  
+  <button id="btnContrast" class="btn btn-contrast">
+    <span>🌗</span> High Contrast Mode
+  </button>
+  
+  <button id="btnDyslexia" class="btn btn-dyslexia">
+    <span>Aa</span> Dyslexia Font
+  </button>
+  
+  <button id="btnRead" class="btn btn-read">
+    <span>🔊</span> Read Selection
+  </button>
+  
+  <button id="btnSimplify" class="btn btn-simplify">
+    <span>🧠</span> Simplify & Translate
+  </button>
 
-      p {
-        font-size: 11px;
-        margin: 0 0 10px;
-        color: #9ca3af;
-      }
+  <button id="btnImages" class="btn btn-images">
+    <span>🖼️</span> AI Fix Image Alts
+  </button>
 
-      .btn {
-        width: 100%;
-        border: none;
-        border-radius: 999px;
-        padding: 8px 12px;
-        margin-bottom: 8px;
-        font-size: 13px;
-        cursor: pointer;
-        background: #111827;
-        color: #f9fafb;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-      }
+  <div class="status" id="statusMsg">Ready to assist.</div>
 
-      .btn span {
-        font-size: 14px;
-      }
-
-      .btn:hover {
-        background: #1f2937;
-      }
-
-      .btn.primary {
-        background: #2563eb;
-      }
-
-      .btn.primary:hover {
-        background: #1d4ed8;
-      }
-
-      .toggle-label {
-        font-size: 11px;
-        color: #9ca3af;
-      }
-    </style>
-  </head>
-  <body>
-    <h1>EchoVision</h1>
-    <p>Select text on the page, then use these tools:</p>
-
-    <button id="btnRead" class="btn primary">
-      <span>🔊 Read Selection</span>
-    </button>
-
-    <button id="btnContrast" class="btn">
-      <span>🌓 High Contrast</span>
-      <span class="toggle-label" id="contrastState">Off</span>
-    </button>
-
-    <button id="btnDyslexia" class="btn">
-      <span>🔤 Dyslexia Mode</span>
-      <span class="toggle-label" id="dyslexiaState">Off</span>
-    </button>
-
-    <button id="btnSimplify" class="btn">
-      <span>🧠 Simplify Text</span>
-    </button>
-
-    <script src="popup.js"></script>
-  </body>
+  <script src="popup.js"></script>
+</body>
 </html>

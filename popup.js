@@ -1,38 +1,31 @@
-// popup.js
-
-function sendMessageToActiveTab(message) {
-  chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-    if (!tabs[0]) return;
-    chrome.tabs.sendMessage(tabs[0].id, message);
-  });
+// Helper to send message to the active tab
+function sendMessageToContent(type, data = {}) {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (tabs[0]) {
+            chrome.tabs.sendMessage(tabs[0].id, { type, ...data });
+        }
+    });
 }
 
-document.getElementById("btnRead").addEventListener("click", () => {
-  sendMessageToActiveTab({ type: "READ_SELECTION" });
-});
-
 document.getElementById("btnContrast").addEventListener("click", () => {
-  sendMessageToActiveTab({ type: "TOGGLE_CONTRAST" });
+    sendMessageToContent("TOGGLE_CONTRAST");
 });
 
 document.getElementById("btnDyslexia").addEventListener("click", () => {
-  sendMessageToActiveTab({ type: "TOGGLE_DYSLEXIA" });
+    sendMessageToContent("TOGGLE_DYSLEXIA");
+});
+
+document.getElementById("btnRead").addEventListener("click", () => {
+    sendMessageToContent("READ_SELECTION");
+    document.getElementById("statusMsg").innerText = "Reading aloud...";
 });
 
 document.getElementById("btnSimplify").addEventListener("click", () => {
-  sendMessageToActiveTab({ type: "SIMPLIFY_SELECTION" });
+    sendMessageToContent("SIMPLIFY_SELECTION");
+    document.getElementById("statusMsg").innerText = "Analyzing text with AI...";
 });
 
-// Optional: receive state updates from content.js
-chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "STATE_UPDATE") {
-    if (typeof message.highContrastEnabled === "boolean") {
-      document.getElementById("contrastState").textContent =
-        message.highContrastEnabled ? "On" : "Off";
-    }
-    if (typeof message.dyslexiaModeEnabled === "boolean") {
-      document.getElementById("dyslexiaState").textContent =
-        message.dyslexiaModeEnabled ? "On" : "Off";
-    }
-  }
+document.getElementById("btnImages").addEventListener("click", () => {
+    sendMessageToContent("FIX_IMAGES");
+    document.getElementById("statusMsg").innerText = "Scanning images...";
 });
