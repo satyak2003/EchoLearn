@@ -1,14 +1,15 @@
 // --- CONFIGURATION ---
 const synth = window.speechSynthesis;
-// Browser compatibility check
 const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 let recognition = null;
+
+// WAKE WORD: The assistant only obeys if you say this first
+const WAKE_WORD = "helper"; 
 
 // --- DOM ELEMENTS ---
 const statusText = document.getElementById("statusText");
 const voiceIcon = document.getElementById("voiceIcon");
 const transcriptDiv = document.getElementById("transcript");
-const btnMic = document.getElementById("btnMic"); // Ensure you have this ID in HTML if using button
 
 // --- HELPER: SEND MESSAGE TO CONTENT SCRIPT ---
 function sendMessage(type) {
@@ -20,137 +21,163 @@ function sendMessage(type) {
 }
 
 // --- HELPER: SPEAK TEXT ---
-function speak(text, callback) {
-    if (synth.speaking) synth.cancel(); // Stop any previous speech
+function speak(text) {
+    // Cancel any current speech to avoid overlapping
+    if (synth.speaking) synth.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.rate = 1.0;
-    
-    utterance.onend = () => {
-        if (callback) callback();
-    };
-    
     synth.speak(utterance);
 }
 
 // --- VOICE RECOGNITION SETUP ---
 if (Recognition) {
     recognition = new Recognition();
-    recognition.continuous = false; // Stop after one command
+    // CRITICAL: Continuous allows it to stay open waiting for the wake word
+    recognition.continuous = true; 
     recognition.lang = 'en-US';
     recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
 
-    // 1. SUCCESS: We got a result
     recognition.onresult = (event) => {
-        const command = event.results[0][0].transcript.toLowerCase();
+        // Get the latest result
+        const lastResultIndex = event.results.length - 1;
+        let command = event.results[lastResultIndex][0].transcript.toLowerCase().trim();
+        
+        // Remove trailing punctuation
+        if (command.endsWith('.')) command = command.slice(0, -1);
+        
+        // Visual Feedback
         transcriptDiv.innerText = `Heard: "${command}"`;
-        transcriptDiv.style.color = "green";
-        processCommand(command);
-    };
-
-    // 2. END: Listening stopped
-    recognition.onend = () => {
-        voiceIcon.classList.remove("listening");
-        statusText.innerText = "Idle";
-    };
-
-    // 3. ERROR: Detailed Logging
-    recognition.onerror = (event) => {
-        voiceIcon.classList.remove("listening");
-        if (event.error === 'not-allowed') {
-            statusText.innerText = "⚠️ Mic Access Denied";
-            transcriptDiv.innerText = "Click the extension icon -> Manage Extensions -> Details -> Site Settings -> Allow Microphone.";
-            transcriptDiv.style.color = "red";
-        } else if (event.error === 'no-speech') {
-            statusText.innerText = "⚠️ No speech detected";
+        
+        // CHECK FOR WAKE WORD
+        if (command.startsWith(WAKE_WORD)) {
+            // Visual success cue
+            transcriptDiv.style.color = "green";
+            transcriptDiv.style.fontWeight = "bold";
+            
+            // Strip the wake word to get the actual action
+            // "Helper open facebook" -> "open facebook"
+            const action = command.replace(WAKE_WORD, "").trim();
+            
+            if (action.length > 0) {
+                console.log("Executing Action:", action);
+                processCommand(action);
+            } else {
+                speak("I am listening.");
+            }
         } else {
-            statusText.innerText = "Error: " + event.error;
+            // Heard something, but no wake word
+            transcriptDiv.style.color = "#999"; // Grey out ignored text
+            console.log("Ignored (No wake word):", command);
         }
     };
-} else {
-    statusText.innerText = "Browser doesn't support Voice.";
+
+    recognition.onend = () => {
+        // If it stops (silence timeout), restart it automatically for "Always On" feel
+        // Note: Chrome kills this if popup closes. Keep popup open!
+        try {
+            recognition.start(); 
+            voiceIcon.classList.add("listening");
+        } catch(e) { /* ignore */ }
+    };
+
+    recognition.onerror = (event) => {
+        if (event.error === 'no-speech') return; // Ignore silence errors
+        statusText.innerText = "Error: " + event.error;
+        voiceIcon.classList.remove("listening");
+    };
 }
 
-// --- LISTENING TRIGGER ---
 function startListening() {
     if (!recognition) return;
-    
-    // Stop speaking before listening (prevents listening to itself)
-    if (synth.speaking) synth.cancel();
-
     try {
         recognition.start();
-        statusText.innerText = "Listening...";
+        statusText.innerText = `Say "${WAKE_WORD}..."`;
         voiceIcon.classList.add("listening");
-        transcriptDiv.innerText = "Speak now...";
-        transcriptDiv.style.color = "#555";
     } catch (e) {
-        // Recognition is already active
         console.log("Mic busy");
     }
 }
 
-// --- COMMAND PARSER ---
+// --- COMMAND PARSER (DYNAMIC WEBSITE LOGIC) ---
 function processCommand(command) {
-    // Navigation
-    if (command.includes("google")) {
-        speak("Opening Google", () => chrome.tabs.create({ url: "https://google.com" }));
-    } 
-    else if (command.includes("news")) {
-        speak("Opening News", () => chrome.tabs.create({ url: "https://bbc.com/news" }));
-    }
-    else if(command.includes("youtube")){
-        speak("Opening Youtube", ()=> chrome.tabs.create({url: "https://youtube.com"}));
-    }
     
-    // Features
+    // 1. DYNAMIC "OPEN [WEBSITE]" LOGIC
+    if (command.startsWith("open")) {
+        // Remove "open" from the string. "open facebook" -> "facebook"
+        let siteName = command.replace("open", "").trim();
+        
+        // Remove common spaces (e.g., "face book" -> "facebook")
+        siteName = siteName.replace(/\s+/g, '');
+
+        if (siteName) {
+            const url = `https://${siteName}.com`;
+            speak(`Opening ${siteName}`);
+            chrome.tabs.create({ url: url });
+        } else {
+            speak("Which website should I open?");
+        }
+    }
+
+    // 2. ACCESSIBILITY FEATURES
     else if (command.includes("contrast") || command.includes("dark")) {
-        speak("Toggling contrast");
+        speak("Contrast toggled");
         sendMessage("TOGGLE_CONTRAST");
     }
     else if (command.includes("dyslexia") || command.includes("font")) {
-        speak("Changing font");
+        speak("Dyslexia mode on");
         sendMessage("TOGGLE_DYSLEXIA");
     }
     else if (command.includes("read") || command.includes("speak")) {
-        speak("Reading selection");
+        speak("Reading");
         sendMessage("READ_SELECTION");
     }
     else if (command.includes("simplify") || command.includes("explain")) {
-        speak("Simplifying text");
+        speak("Simplifying");
         sendMessage("SIMPLIFY_SELECTION");
     }
     else if (command.includes("image") || command.includes("fix")) {
-        speak("Fixing images");
+        speak("Scanning images");
         sendMessage("FIX_IMAGES");
     }
+
+    // 3. SCROLLING
+    else if (command.includes("scroll down") || command.includes("down")) {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            chrome.scripting.executeScript({
+                target: {tabId: tabs[0].id},
+                func: () => window.scrollBy(0, 500)
+            });
+        });
+    }
+    else if (command.includes("scroll up") || command.includes("up")) {
+        chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            chrome.scripting.executeScript({
+                target: {tabId: tabs[0].id},
+                func: () => window.scrollBy(0, -500)
+            });
+        });
+    }
+    
+    // 4. FALLBACK
     else {
-        speak("I didn't understand. Please try again.");
+        speak("I am not sure how to do that.");
     }
 }
 
 // --- INITIALIZATION ---
 window.onload = () => {
-    // 1. Initial Greeting
+    // Auto-start listening silently
     setTimeout(() => {
-        speak("I am ready. Click the mic to speak.", null);
+        startListening();
+        // Removed auto-greeting so it doesn't interrupt the user immediately
     }, 500);
-
-    // 2. Bind Mic Icon Click
-    if (voiceIcon) {
-        voiceIcon.onclick = startListening;
-    }
+    
+    if (voiceIcon) voiceIcon.onclick = startListening;
 };
 
-// --- BIND MANUAL BUTTONS ---
+// --- MANUAL BUTTONS ---
 document.getElementById("btnContrast").onclick = () => sendMessage("TOGGLE_CONTRAST");
 document.getElementById("btnDyslexia").onclick = () => sendMessage("TOGGLE_DYSLEXIA");
 document.getElementById("btnRead").onclick = () => sendMessage("READ_SELECTION");
-document.getElementById("btnSimplify").onclick = () => {
-    statusText.innerText = "Thinking...";
-    sendMessage("SIMPLIFY_SELECTION");
-};
-document.getElementById("btnImages").onclick = () => {
-    statusText.innerText = "Scanning...";
-    sendMessage("FIX_IMAGES");
-};
+document.getElementById("btnSimplify").onclick = () => sendMessage("SIMPLIFY_SELECTION");
+document.getElementById("btnImages").onclick = () => sendMessage("FIX_IMAGES");
