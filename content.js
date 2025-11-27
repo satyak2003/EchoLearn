@@ -17,7 +17,7 @@ function readSelection() {
 }
 
 // --- 3. FEATURE: HIGH CONTRAST ---
-export function toggleContrast() {
+function toggleContrast() {
     contrastActive = !contrastActive;
     if (contrastActive) {
         const style = document.createElement('style');

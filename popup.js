@@ -14,8 +14,22 @@ const transcriptDiv = document.getElementById("transcript");
 // --- HELPER: SEND MESSAGE TO CONTENT SCRIPT ---
 function sendMessage(type) {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs[0] && tabs[0].id) {
-            chrome.tabs.sendMessage(tabs[0].id, { type });
+        const activeTab = tabs[0];
+        if (activeTab && activeTab.id) {
+            // Prevent running on restricted chrome:// URLs
+            if (activeTab.url.startsWith("chrome://") || activeTab.url.startsWith("edge://") || activeTab.url.startsWith("about:")) {
+                speak("I cannot modify browser system pages.");
+                return;
+            }
+
+            // Send message with error handling
+            chrome.tabs.sendMessage(activeTab.id, { type })
+                .catch(err => {
+                    console.warn("Communication error:", err);
+                    // This error usually means the content script isn't loaded yet
+                    speak("Please refresh the web page to use this feature.");
+                    statusText.innerText = "Error: Refresh Page";
+                });
         }
     });
 }
@@ -143,18 +157,22 @@ function processCommand(command) {
     // 3. SCROLLING
     else if (command.includes("scroll down") || command.includes("down")) {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (tabs[0].url.startsWith("chrome://")) return; // Safety check
+            
             chrome.scripting.executeScript({
                 target: {tabId: tabs[0].id},
                 func: () => window.scrollBy(0, 500)
-            });
+            }).catch(() => speak("Cannot scroll this page."));
         });
     }
     else if (command.includes("scroll up") || command.includes("up")) {
         chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+            if (tabs[0].url.startsWith("chrome://")) return; // Safety check
+            
             chrome.scripting.executeScript({
                 target: {tabId: tabs[0].id},
                 func: () => window.scrollBy(0, -500)
-            });
+            }).catch(() => speak("Cannot scroll this page."));
         });
     }
     
