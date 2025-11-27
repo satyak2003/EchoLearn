@@ -9,7 +9,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.type === "TOGGLE_DYSLEXIA") toggleDyslexia();
     if (request.type === "READ_SELECTION") readSelection();
     if (request.type === "SIMPLIFY_SELECTION") simplifyText();
-    if (request.type === "FIX_IMAGES") fixImages();
+    // if (request.type === "FIX_IMAGES") fixImages();
 });
 
 // --- HELPER: SPEECH ---
@@ -110,39 +110,6 @@ async function simplifyText() {
     }
 }
 
-async function fixImages() {
-    const images = Array.from(document.querySelectorAll('img')).slice(0, 5); // Limit to 5 for speed
-    let count = 0;
-    
-    speakText("Scanning images for missing descriptions...");
-
-    for (let img of images) {
-        if (!img.alt || img.alt.trim() === "") {
-            // 1. Visual Highlight
-            img.style.border = "4px solid #e74c3c";
-            
-            // 2. Call Backend
-            try {
-                const res = await fetch('http://127.0.0.1:5000/describe-image', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ url: img.src })
-                });
-                const data = await res.json();
-                
-                // 3. Apply the Real AI Description
-                img.alt = data.description;
-                img.title = data.description; // Tooltip on hover
-                console.log("Fixed:", data.description);
-                count++;
-                
-            } catch (e) {
-                img.alt = "Image description unavailable";
-            }
-        }
-    }
-    speakText(`I used A I to generate descriptions for ${count} images.`);
-}
 
 // --- FORMATTING HELPERS ---
 function formatAIResponse(text) {

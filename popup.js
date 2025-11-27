@@ -11,8 +11,7 @@ const HELPER_MENU_ITEMS = [
     "High contrast",
     "Dyslexic mode",
     "Read",
-    "Simplify",
-    "Fix images"
+    "Simplify"
 ];
 
 // --- DOM ELEMENTS ---
@@ -177,12 +176,11 @@ function processCommand(command) {
         speak("Simplifying");
         sendMessage("SIMPLIFY_SELECTION");
     }
-    else if (command.includes("image") || command.includes("fix")||command.includes("five")||command.includes("5")) {
-        speak("Scanning images");
-        sendMessage("FIX_IMAGES");
-    }
+    // else if (command.includes("image") || command.includes("fix")||command.includes("five")||command.includes("5")) {
+    //     speak("Scanning images");
+    //     sendMessage("FIX_IMAGES");
+    // }
 
-    // 3. SCROLLING
     // 3. SMOOTH SCROLLING
     else if (command.includes("scroll down") || command.includes("down")) {
         chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -243,4 +241,4 @@ document.getElementById("btnContrast").onclick = () => sendMessage("TOGGLE_CONTR
 document.getElementById("btnDyslexia").onclick = () => sendMessage("TOGGLE_DYSLEXIA");
 document.getElementById("btnRead").onclick = () => sendMessage("READ_SELECTION");
 document.getElementById("btnSimplify").onclick = () => sendMessage("SIMPLIFY_SELECTION");
-document.getElementById("btnImages").onclick = () => sendMessage("FIX_IMAGES");
+// document.getElementById("btnImages").onclick = () => sendMessage("FIX_IMAGES");
