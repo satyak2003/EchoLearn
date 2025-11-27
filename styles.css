@@ -1,46 +1,112 @@
+/* OpenAccess Full Screen Overlay */
 .openaccess-overlay {
     position: fixed;
-    top: 20px;
-    right: 20px;
-    width: 300px;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(255, 255, 255, 0.98); /* Slightly transparent white */
+    color: #1a1a1a;
+    z-index: 2147483647; /* Maximum Z-index */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', Helvetica, Arial, sans-serif;
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Container for the text to keep it readable width */
+.oa-content-box {
+    width: 800px;
+    max-width: 90%;
+    max-height: 85vh;
+    overflow-y: auto;
     background: #ffffff;
-    color: #000000;
-    border: 2px solid #333;
-    padding: 20px;
-    z-index: 2147483647; /* Max Z-index to stay on top */
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    padding: 40px;
     border-radius: 12px;
-    font-size: 16px;
-    line-height: 1.5;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+    border: 1px solid #e0e0e0;
 }
 
-.openaccess-overlay h3 {
+/* Typography */
+.oa-content-box h2 {
     margin-top: 0;
-    margin-bottom: 10px;
     color: #2c3e50;
-    border-bottom: 2px solid #3498db;
-    padding-bottom: 5px;
+    font-size: 28px;
+    border-bottom: 3px solid #27ae60;
+    padding-bottom: 15px;
+    margin-bottom: 25px;
 }
 
-.openaccess-overlay button {
-    margin-top: 15px;
-    width: 100%;
-    padding: 8px;
-    cursor: pointer;
-    background-color: #e74c3c;
+.oa-content-box p {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.oa-content-box ul {
+    margin-bottom: 20px;
+    padding-left: 20px;
+}
+
+.oa-content-box li {
+    font-size: 18px;
+    line-height: 1.8;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.oa-content-box strong {
+    color: #000;
+    font-weight: 700;
+}
+
+/* Close Button */
+.oa-close-btn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+    background: #e74c3c;
     color: white;
     border: none;
-    border-radius: 4px;
+    padding: 12px 24px;
+    font-size: 16px;
     font-weight: bold;
+    border-radius: 50px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(231, 76, 60, 0.4);
+    transition: transform 0.2s;
 }
 
-.openaccess-overlay button:hover {
-    background-color: #c0392b;
+.oa-close-btn:hover {
+    transform: scale(1.05);
+    background: #c0392b;
 }
 
-/* High Contrast Force Overrides (Optional fallback) */
-.access-high-contrast {
-    background-color: black !important;
-    color: yellow !important;
+/* Loading Spinner */
+.oa-spinner {
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 1s linear infinite;
+    margin: 20px auto;
+}
+
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* High Contrast Override for the Modal */
+.access-high-contrast .openaccess-overlay,
+.access-high-contrast .oa-content-box {
+    background: #000 !important;
+    color: #ff0 !important;
+    border-color: #ff0 !important;
+}
+.access-high-contrast .oa-content-box h2 {
+    border-color: #ff0 !important;
+    color: #ff0 !important;
 }
