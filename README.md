@@ -113,4 +113,4 @@ Highlight any text on a webpage and click Simplify to get an AI summary.
 - Sudhanva H Rao - Documentation & Testing
 
 This project is licensed under the MIT License
-Copyright © 2025 DevNull
+- Copyright © 2025 DevNull
