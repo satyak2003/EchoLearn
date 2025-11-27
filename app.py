@@ -11,7 +11,7 @@ api_key = os.getenv("GEMINI_API_KEY")
 
 genai.configure(api_key = "AIzaSyAA0ih69YWNLUR_rh0WvDm2385jSXp4M2Q")
 
-model = genai.GenerativeModel('gemini-pro')
+model = genai.GenerativeModel('gemini-2.5-flash')
 
 @app.route('/simplify', methods=['POST'])
 def simplify():
